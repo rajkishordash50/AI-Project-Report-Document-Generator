@@ -1,0 +1,487 @@
+{
+  "name": "AI Project Document Generator Final publish",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1kt9dD1erizHS-6y9VJogZRPaeLomUyyS0_8vS79wULo/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1495644831,
+          "mode": "list",
+          "cachedResultName": "Form responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1kt9dD1erizHS-6y9VJogZRPaeLomUyyS0_8vS79wULo/edit#gid=1495644831"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "id": "ff9e5e89-361c-49b2-8b98-bf9b9fcbe6ab",
+      "name": "New Form Response",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        80
+      ],
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "PJjlkoLExD1n8Iww",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior Software Architect. Generate a complete, professional, client-ready Software Project Document. \n\nDo not use placeholders like [REQUIRED]. Write in proper format with headings and bullet points.\n\nClient Data:\nProject Name: {{ $json[\"Project Name\"] }}\nProject Description: {{ $json[\"Project Description\"] }}\nTechnology Stack: {{ $json[\"Technology stack\"] }}\nModules / Features: {{ $json[\"Modules / Features\"] }}\nDatabase Details: {{ $json[\"Database Details\"] }}",
+        "options": {
+          "systemMessage": "You are a Senior Software Architect. Transform raw project data into a professional Software Project Document. Produce a well-structured document with clear sections\nREPORT MUST INCLUDE these sections write section name in bold and . (dot) symbol before it\n• Project Overview\n• Techndogy Tools Used\n• Functiona ModUes or Features\n• Database / Data Information\n• System Solution Architecture\n•  Explanation\n• Key funtionalities\n• Future enhanancement\n• conclusion\nformat with headings , bullet points,\nno place holders like [REQUIRED]\nbased on above data only you need to give give result dont ask any other information\n\n Generate a well-structured final output with logical sections, headings, descriptions, and architecture«elated\ninformation where appicaue.\n• Ensure the workfow handes incomplete, inconsistent, or poMy formatted input gracefully.\n• Add basic validabon and meaningful handling so the autornation does fal slendy.\n• The final resdt should usable by a developer, project reviewer, trainer, Or client Without requiring manual rewriting\n\n"
+        }
+      },
+      "id": "6e642650-7938-4a3a-be47-9445e4740a5d",
+      "name": "Generate Project Document",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        576,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "1375bedb-8cdf-4123-a207-addf6bdb8319",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        208
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "SBZ00Lxd6aUWrddj",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.clientEmail }}",
+        "subject": "Project Submission Failed - Missing Information",
+        "message": "Please submit Project Name and Description.",
+        "options": {}
+      },
+      "id": "65566bfd-2f53-4af6-9116-efea0024a1ab",
+      "name": "Send Validation Error",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        128
+      ],
+      "webhookId": "5e75406f-ab91-433a-a21f-bae8003d70b6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DGo1sEaDKalxJY2v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('New Form Response').item.json['Email ID'] }}",
+        "subject": "=Delivery of Project Report of  {{ $('New Form Response').item.json['   Project Name'] }}",
+        "message": "={{ $json.documentId }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1392,
+        96
+      ],
+      "id": "025e96d7-2c96-4d03-a1ed-9f9335e4efa2",
+      "name": "Send a message",
+      "webhookId": "350aeea6-6fb7-4824-87e7-fe4e19caf621",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DGo1sEaDKalxJY2v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.documentId }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            }
+          },
+          "fileName": "={{ $('New Form Response').item.json['   Project Name'] }}_Proposal.docx"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1376,
+        -208
+      ],
+      "id": "c53b340c-8a03-4509-8492-692c58362b12",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7o2ZBozUXpb9VI2k",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "28bf6d43-b11a-4fba-813a-a7ca6ca24191",
+              "name": "   Project Name",
+              "value": "={{ $json['   Project Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1ab32d73-2c0d-4562-a8aa-69eea8f0f9fb",
+              "name": "Project Description",
+              "value": "={{ $json['Project Description'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2562c676-3edd-4ed3-a608-d197d977828a",
+              "name": "Technology stack",
+              "value": "={{ $json['Technology stack'] }}",
+              "type": "string"
+            },
+            {
+              "id": "7ac7333d-7c87-48c5-a8d4-2466779685c9",
+              "name": "Modules / Features",
+              "value": "={{ $json['Modules / Features'] }}",
+              "type": "string"
+            },
+            {
+              "id": "60e4508b-bc62-47d1-8f8d-a53609a9de01",
+              "name": "Database Details",
+              "value": "={{ $json['Database Details'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8eeb67cf-fd4a-4234-979c-90ea663165dd",
+      "name": "Standardize Input1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -48,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "28bf6d43-b11a-4fba-813a-a7ca6ca24191",
+              "name": "   Project Name",
+              "value": "={{ $json['   Project Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1ab32d73-2c0d-4562-a8aa-69eea8f0f9fb",
+              "name": "Project Description",
+              "value": "={{ $json['Project Description'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2562c676-3edd-4ed3-a608-d197d977828a",
+              "name": "Technology stack",
+              "value": "={{ $json['Technology stack'] }}",
+              "type": "string"
+            },
+            {
+              "id": "7ac7333d-7c87-48c5-a8d4-2466779685c9",
+              "name": "Modules / Features",
+              "value": "={{ $json['Modules / Features'] }}",
+              "type": "string"
+            },
+            {
+              "id": "60e4508b-bc62-47d1-8f8d-a53609a9de01",
+              "name": "Database Details",
+              "value": "={{ $json['Database Details'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1160b8b2-ce1a-43c0-a0f7-7c2301061c3a",
+      "name": "Standardize Input2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        688,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.projectName }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.description }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "f7e0059e-f3c6-4fe8-940b-c35e1a7757c4",
+              "leftValue": "={{ $json.techStack }}",
+              "rightValue": "={{ $json.modules }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "37fe92b9-5969-4479-aa46-3f76fa50073d",
+              "leftValue": "={{ $json.database }}",
+              "rightValue": "={{ $json.clientEmail }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "id": "7c109827-b5ed-4201-80c4-0c6911ea10ad",
+      "name": "Validation Check1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        272,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "folderId": "1NnqJ_5JQGIcNzBfXVapBv_2zWhM-Sg7b",
+        "title": "={{ $('Standardize Input1').item.json['   Project Name'] }}"
+      },
+      "id": "d436fdb2-4ea3-47f1-ad82-23c7f7a934e0",
+      "name": "Create Google Doc1",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        928,
+        -160
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "rB7TLRMxOnSvYFaV",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('Generate Project Document').item.json.output }}"
+            }
+          ]
+        }
+      },
+      "id": "882d1275-316e-4ba9-8e21-41e78bd4b299",
+      "name": "Insert Document Content1",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -224
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "rB7TLRMxOnSvYFaV",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "New Form Response": {
+      "main": [
+        [
+          {
+            "node": "Standardize Input1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Project Document": {
+      "main": [
+        [
+          {
+            "node": "Create Google Doc1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Project Document",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Standardize Input1": {
+      "main": [
+        [
+          {
+            "node": "Validation Check1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Check1": {
+      "main": [
+        [
+          {
+            "node": "Generate Project Document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Google Doc1": {
+      "main": [
+        [
+          {
+            "node": "Insert Document Content1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Document Content1": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d9b776eb-abfc-4f16-b445-46bb6f32c68c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "11f2e1a768ea1a80ebfd29373f7d7273e51b1b2a298e95272adc1b0144295dac"
+  },
+  "nodeGroups": [],
+  "id": "Rhe7wL66NUXLtIze",
+  "tags": []
+}
